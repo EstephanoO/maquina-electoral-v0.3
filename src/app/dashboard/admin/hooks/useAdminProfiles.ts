@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 export type AdminProfile = {
   user_id: string;
@@ -16,7 +16,7 @@ export function useAdminProfiles() {
     | { status: "error" }
   >({ status: "idle" });
 
-  useEffect(() => {
+  const refresh = useCallback(() => {
     fetch("/api/admin/onboarding")
       .then(async (response) => {
         if (!response.ok) {
@@ -30,5 +30,26 @@ export function useAdminProfiles() {
       });
   }, []);
 
-  return state;
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  const remove = useCallback(async (userId: string) => {
+    await fetch(`/api/admin/onboarding/${userId}`, { method: "DELETE" });
+    refresh();
+  }, [refresh]);
+
+  const update = useCallback(
+    async (userId: string, profile: Record<string, unknown>) => {
+      await fetch(`/api/admin/onboarding/${userId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile }),
+      });
+      refresh();
+    },
+    [refresh],
+  );
+
+  return { ...state, refresh, remove, update };
 }

@@ -35,3 +35,24 @@ export async function listOnboardingProfiles() {
   );
   return result.rows;
 }
+
+export async function updateOnboardingProfile(
+  userId: string,
+  profile: OnboardingProfile,
+) {
+  const pool = getPool();
+  const result = await pool.query<OnboardingProfileRecord>(
+    "UPDATE public.onboarding_profiles SET profile = $2, updated_at = now() WHERE user_id = $1 RETURNING user_id, profile, updated_at",
+    [userId, profile],
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function deleteOnboardingProfile(userId: string) {
+  const pool = getPool();
+  const result = await pool.query<OnboardingProfileRecord>(
+    "DELETE FROM public.onboarding_profiles WHERE user_id = $1 RETURNING user_id, profile, updated_at",
+    [userId],
+  );
+  return result.rows[0] ?? null;
+}

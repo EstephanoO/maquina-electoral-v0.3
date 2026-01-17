@@ -9,6 +9,7 @@ import { useAdminProfiles } from "@/src/app/dashboard/admin/hooks/useAdminProfil
 export default function AdminDashboardPage() {
   const router = useRouter();
   const profiles = useAdminProfiles();
+  const isLoading = profiles.status === "idle";
 
   return (
     <ProtectedRoute requiredRole="admin">
@@ -72,6 +73,11 @@ export default function AdminDashboardPage() {
               </p>
             </div>
             <div className="grid gap-4 md:grid-cols-2">
+              {isLoading && (
+                <div className="rounded-xl border border-zinc-800/80 bg-black/50 p-4 text-sm text-zinc-400">
+                  Cargando clientes...
+                </div>
+              )}
               {profiles.status === "ready" &&
                 profiles.payload.map((profile) => {
                   const payload = profile.profile as Record<string, unknown>;
@@ -90,6 +96,10 @@ export default function AdminDashboardPage() {
                   const campaignStrategy = String(
                     payload.campaignStrategy || "Sin estrategia",
                   );
+                  const adminConfig = (payload.adminConfig || {}) as Record<
+                    string,
+                    string
+                  >;
                   return (
                     <div
                       key={profile.user_id}
@@ -104,6 +114,11 @@ export default function AdminDashboardPage() {
                             {politicalParty}
                           </p>
                           <p className="text-xs text-zinc-500">{profile.email}</p>
+                          {adminConfig.status && (
+                            <p className="text-xs text-amber-200/80">
+                              Estado: {adminConfig.status}
+                            </p>
+                          )}
                         </div>
                         <span className="rounded-full border border-zinc-800/80 bg-black/60 px-3 py-1 text-xs uppercase tracking-[0.2em] text-zinc-400">
                           {politicalLevel}
@@ -116,12 +131,69 @@ export default function AdminDashboardPage() {
                         </p>
                         <p>Estrategia: {campaignStrategy}</p>
                       </div>
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const nextProfile = {
+                              ...payload,
+                              adminConfig: {
+                                status: "configurado",
+                                updatedAt: new Date().toISOString(),
+                              },
+                            };
+                            profiles.update(profile.user_id, nextProfile);
+                          }}
+                          className="rounded-full border border-blue-500/50 bg-blue-500/10 px-3 py-1 text-xs text-blue-200"
+                        >
+                          Configurar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const nextParty = window.prompt(
+                              "Partido político",
+                              politicalParty,
+                            );
+                            if (!nextParty) return;
+                            const nextProfile = {
+                              ...payload,
+                              politicalParty: nextParty,
+                            };
+                            profiles.update(profile.user_id, nextProfile);
+                          }}
+                          className="rounded-full border border-amber-500/50 bg-amber-500/10 px-3 py-1 text-xs text-amber-200"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (
+                              !window.confirm(
+                                "Seguro que deseas borrar este cliente?",
+                              )
+                            ) {
+                              return;
+                            }
+                            profiles.remove(profile.user_id);
+                          }}
+                          className="rounded-full border border-red-500/50 bg-red-500/10 px-3 py-1 text-xs text-red-200"
+                        >
+                          Borrar
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
               {profiles.status === "error" && (
                 <div className="rounded-xl border border-zinc-800/80 bg-black/50 p-4 text-sm text-zinc-400">
                   No se pudo cargar la lista de onboarding.
+                </div>
+              )}
+              {profiles.status === "ready" && profiles.payload.length === 0 && (
+                <div className="rounded-xl border border-zinc-800/80 bg-black/50 p-4 text-sm text-zinc-400">
+                  Aun no hay clientes con onboarding guardado.
                 </div>
               )}
             </div>

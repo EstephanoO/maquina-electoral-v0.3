@@ -30,7 +30,25 @@ export default function LoginPage() {
       token: session.token,
       createdAt: session.createdAt,
     });
-    router.push(session.role === "admin" ? "/dashboard/admin" : "/dashboard");
+
+    if (session.role === "admin") {
+      router.push("/dashboard/admin");
+      return;
+    }
+
+    const onboardingResponse = await fetch(
+      `/api/onboarding?userId=${session.userId}`,
+    );
+    if (!onboardingResponse.ok) {
+      router.push("/onboarding");
+      return;
+    }
+    const onboardingData = await onboardingResponse.json();
+    if (!onboardingData.profile) {
+      router.push("/onboarding");
+      return;
+    }
+    router.push("/dashboard");
   };
 
   return (

@@ -9,6 +9,7 @@ export function useOnboardingProfile() {
   const [state, setState] = useState<
     | { status: "idle" }
     | { status: "ready"; payload: OnboardingContext }
+    | { status: "missing" }
     | { status: "error" }
   >({ status: "idle" });
 
@@ -25,7 +26,11 @@ export function useOnboardingProfile() {
           throw new Error("error");
         }
         const data = await response.json();
-        const parsed = OnboardingContextSchema.safeParse(data.profile?.profile);
+        if (!data.profile) {
+          setState({ status: "missing" });
+          return;
+        }
+        const parsed = OnboardingContextSchema.safeParse(data.profile.profile);
         if (!parsed.success) {
           setState({ status: "error" });
           return;

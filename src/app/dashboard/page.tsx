@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { padronData } from "@/src/db/constants/padron";
 import { ProtectedRoute } from "@/src/ui/auth/ProtectedRoute";
@@ -12,6 +13,20 @@ export default function DashboardPage() {
   const router = useRouter();
   const session = getSessionLabel();
   const data = useOnboardingProfile();
+
+  useEffect(() => {
+    if (session?.role === "admin") {
+      router.replace("/dashboard/admin");
+      return;
+    }
+    if (data.status === "missing") {
+      router.replace("/onboarding");
+    }
+  }, [data.status, router, session?.role]);
+
+  if (session?.role === "admin" || data.status === "missing") {
+    return null;
+  }
 
   return (
     <ProtectedRoute requiredRole="cliente">
@@ -69,7 +84,7 @@ export default function DashboardPage() {
 
           {data.status === "error" && (
             <div className="rounded-2xl border border-zinc-800/80 bg-black/40 p-6 text-zinc-300">
-              No encontramos datos guardados. Vuelve al onboarding.
+              No pudimos cargar tu onboarding. Intenta de nuevo.
             </div>
           )}
 

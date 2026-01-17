@@ -20,7 +20,7 @@ export function ProtectedRoute({
       return;
     }
     if (requiredRole && session.role !== requiredRole) {
-      router.replace("/dashboard");
+      router.replace(session.role === "admin" ? "/dashboard/admin" : "/dashboard");
     }
   }, [requiredRole, router]);
 
