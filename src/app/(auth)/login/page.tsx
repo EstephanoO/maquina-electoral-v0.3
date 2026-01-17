@@ -8,7 +8,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState<"login" | "register">("login");
-  const [role, setRole] = useState<"cliente" | "admin">("cliente");
   const router = useRouter();
 
   const handleLogin = async (event: React.FormEvent) => {
@@ -16,7 +15,7 @@ export default function LoginPage() {
     const response = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, role, mode }),
+      body: JSON.stringify({ email, password, mode }),
     });
 
     if (!response.ok) {
@@ -31,7 +30,7 @@ export default function LoginPage() {
       token: session.token,
       createdAt: session.createdAt,
     });
-    router.push(role === "admin" ? "/dashboard/admin" : "/dashboard");
+    router.push(session.role === "admin" ? "/dashboard/admin" : "/dashboard");
   };
 
   return (
@@ -97,26 +96,6 @@ export default function LoginPage() {
           </div>
         </fieldset>
 
-        <fieldset className="space-y-2">
-          <legend className="text-sm text-zinc-300">Rol</legend>
-          <div className="flex gap-2">
-            {(["cliente", "admin"] as const).map((item) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() => setRole(item)}
-                aria-pressed={role === item}
-                className={`flex-1 rounded-xl border px-3 py-2 text-sm ${
-                  role === item
-                    ? "border-amber-500 bg-amber-500/10 text-amber-200"
-                    : "border-zinc-800/80 bg-black/30 text-zinc-300"
-                }`}
-              >
-                {item === "cliente" ? "Cliente" : "Admin"}
-              </button>
-            ))}
-          </div>
-        </fieldset>
 
         <button
           type="submit"
@@ -124,6 +103,9 @@ export default function LoginPage() {
         >
           {mode === "login" ? "Entrar" : "Registrar"}
         </button>
+        <p className="text-xs text-zinc-500 text-center">
+          Admin: admin@goberna.com · admin123
+        </p>
       </form>
     </div>
   );
