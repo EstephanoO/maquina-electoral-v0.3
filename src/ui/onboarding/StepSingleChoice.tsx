@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { CheckCircle2 } from "lucide-react";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import type { FlowOption } from "@/src/onboarding/types";
 import { getIcon } from "./icon-map";
 
@@ -24,7 +24,6 @@ export function StepSingleChoice({
   onNext,
 }: StepSingleChoiceProps) {
   const [selected, setSelected] = useState<string | null>(null);
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   const handleSelect = useCallback(
     (id: string) => {
@@ -36,11 +35,9 @@ export function StepSingleChoice({
     [onNext],
   );
 
-  useEffect(() => {
-    if (selected && !options.some((option) => option.value === selected)) {
-      setSelected(null);
-    }
-  }, [options, selected]);
+  if (selected && !options.some((option) => option.value === selected)) {
+    setSelected(null);
+  }
 
   const handleOptionClick = useCallback(
     (optionValue: string) => {
@@ -48,14 +45,6 @@ export function StepSingleChoice({
     },
     [handleSelect],
   );
-
-  const handleMouseEnter = useCallback((optionValue: string) => {
-    setHoveredId(optionValue);
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setHoveredId(null);
-  }, []);
 
   return (
     <motion.div
@@ -113,8 +102,6 @@ export function StepSingleChoice({
               whileHover={{ scale: 1.02, y: -3 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => handleOptionClick(option.value)}
-              onMouseEnter={() => handleMouseEnter(option.value)}
-              onMouseLeave={handleMouseLeave}
               aria-pressed={isSelected}
               className={`relative p-4 sm:p-6 rounded-2xl border-2 text-left transition-all overflow-hidden group min-h-[140px] sm:min-h-[160px] touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
                 isSelected

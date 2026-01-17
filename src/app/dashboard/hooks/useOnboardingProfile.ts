@@ -6,17 +6,16 @@ import { OnboardingContextSchema } from "@/src/onboarding/types";
 import { authStorage } from "@/src/auth/storage";
 
 export function useOnboardingProfile() {
+  const [session] = useState(() => authStorage.load());
   const [state, setState] = useState<
     | { status: "idle" }
     | { status: "ready"; payload: OnboardingContext }
     | { status: "missing" }
     | { status: "error" }
-  >({ status: "idle" });
+  >(() => (session ? { status: "idle" } : { status: "error" }));
 
   useEffect(() => {
-    const session = authStorage.load();
     if (!session) {
-      setState({ status: "error" });
       return;
     }
 
@@ -40,7 +39,7 @@ export function useOnboardingProfile() {
       .catch(() => {
         setState({ status: "error" });
       });
-  }, []);
+  }, [session]);
 
   return state;
 }

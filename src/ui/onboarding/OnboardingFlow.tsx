@@ -38,18 +38,13 @@ export function OnboardingFlow() {
   const [showWelcome, setShowWelcome] = useState(true);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
-  const [onboardingData, setOnboardingData] = useState<OnboardingContext>({});
+  const [onboardingData, setOnboardingData] = useState<OnboardingContext>(() =>
+    storage.load() || {},
+  );
   const router = useRouter();
 
   const currentStep = onboardingSteps[currentStepIndex];
   const canGoBack = currentStepIndex > 0 && !showWelcome && !isComplete;
-
-  useEffect(() => {
-    const stored = storage.load();
-    if (stored) {
-      setOnboardingData(stored);
-    }
-  }, []);
 
   useEffect(() => {
     if (!showWelcome) {
