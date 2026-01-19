@@ -1,60 +1,135 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { Suspense, lazy, useState, useCallback, useEffect, useRef } from "react";
+import type { ComponentProps } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { ChevronLeft } from "lucide-react";
 
-import type { OnboardingContext } from "@/src/onboarding/types";
+import type { FlowOption, OnboardingContext } from "@/src/onboarding/types";
 import { getRoleOptionsByLevel, onboardingSteps } from "@/src/onboarding/steps";
-import { partidosData } from "@/src/db/constants/partidos2";
 import { createLocalStorageAdapter } from "@/src/onboarding/storage";
 import { OnboardingTransformer } from "@/src/onboarding/transformer";
 import { createClientRecord, clientStorage } from "@/src/db/constants/clients";
 import { authStorage } from "@/src/auth/storage";
 
-import { WelcomeScreen } from "./WelcomeScreen";
 import { ProgressBar } from "./ProgressBar";
 import { StepInfo } from "./StepInfo";
 import { StepSingleChoice } from "./StepSingleChoice";
-import { StepMultipleChoice } from "./StepMultipleChoice";
-import { StepForm } from "./StepForm";
-import { StepSearchSelect } from "./StepSearchSelect";
-import { CompletionScreen } from "./CompletionScreen";
 import { AnimatedBackground } from "./AnimatedBackground";
+
+type StepSearchSelectProps = ComponentProps<
+  typeof import("./StepSearchSelect").StepSearchSelect
+>;
+
+type StepMultipleChoiceProps = ComponentProps<
+  typeof import("./StepMultipleChoice").StepMultipleChoice
+>;
+
+type StepFormProps = ComponentProps<typeof import("./StepForm").StepForm>;
+
+type CompletionScreenProps = ComponentProps<
+  typeof import("./CompletionScreen").CompletionScreen
+>;
+
+type StepSearchSelectValue = Parameters<StepSearchSelectProps["onNext"]>[0];
+type StepMultipleChoiceValue = Parameters<StepMultipleChoiceProps["onNext"]>[0];
+type StepFormValue = Parameters<StepFormProps["onNext"]>[0];
+
+const StepSearchSelect = lazy(() =>
+  import("./StepSearchSelect").then((mod) => ({
+    default: mod.StepSearchSelect,
+  })),
+);
+const StepMultipleChoice = lazy(
+  () =>
+    import("./StepMultipleChoice").then((mod) => ({
+      default: mod.StepMultipleChoice,
+    })),
+);
+const StepForm = lazy(
+  () => import("./StepForm").then((mod) => ({ default: mod.StepForm })),
+);
+const CompletionScreen = lazy(
+  () => import("./CompletionScreen").then((mod) => ({
+    default: mod.CompletionScreen,
+  })),
+);
+
+const StepLoading = () => (
+  <div className="w-full max-w-4xl rounded-3xl border border-zinc-800/80 bg-black/40 px-6 py-10 text-center text-sm text-zinc-400 animate-pulse">
+    Cargando paso...
+  </div>
+);
 
 const DEFAULT_MAX_SELECTIONS = 999;
 const DEFAULT_MIN_SELECTIONS = 1;
 
-const PARTY_OPTIONS = partidosData.items.map((party) => ({
-  value: party.TxCodOp,
-  label: party.TxDesOp,
-  logoUrl: party.logoUrl,
-}));
+const PARTY_OPTIONS: FlowOption[] = [];
+let partyOptionsPromise: Promise<FlowOption[]> | null = null;
+
+const loadPartyOptions = async (): Promise<FlowOption[]> => {
+  if (PARTY_OPTIONS.length) {
+    return PARTY_OPTIONS;
+  }
+  if (!partyOptionsPromise) {
+    partyOptionsPromise = import("@/src/db/constants/partidos2").then(
+      (mod) =>
+        mod.partidosData.items.map((party) => ({
+          value: party.TxCodOp,
+          label: party.TxDesOp,
+          logoUrl: party.logoUrl,
+        })),
+    );
+  }
+  const options = await partyOptionsPromise;
+  PARTY_OPTIONS.push(...options);
+  return PARTY_OPTIONS;
+};
 
 const storage = createLocalStorageAdapter();
 
 export function OnboardingFlow() {
-  const [showWelcome, setShowWelcome] = useState(true);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const [onboardingData, setOnboardingData] = useState<OnboardingContext>(() =>
     storage.load() || {},
   );
+  const [partyOptions, setPartyOptions] = useState<FlowOption[]>(PARTY_OPTIONS);
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
 
   const currentStep = onboardingSteps[currentStepIndex];
-  const canGoBack = currentStepIndex > 0 && !showWelcome && !isComplete;
+  const canGoBack = currentStepIndex > 0 && !isComplete;
 
   useEffect(() => {
-    if (!showWelcome) {
-      storage.save(onboardingData);
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
     }
-  }, [onboardingData, showWelcome]);
+    saveTimeoutRef.current = setTimeout(() => {
+      storage.save(onboardingData);
+    }, 300);
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [onboardingData]);
 
-  const handleStart = useCallback(() => {
-    setShowWelcome(false);
-  }, []);
+  useEffect(() => {
+    if (currentStep?.id !== "politicalParty") return;
+    let isActive = true;
+    loadPartyOptions()
+      .then((options) => {
+        if (isActive) {
+          setPartyOptions(options);
+        }
+      })
+      .catch(() => null);
+    return () => {
+      isActive = false;
+    };
+  }, [currentStep?.id]);
 
   const handleStepData = useCallback(
     (stepData?: unknown) => {
@@ -159,17 +234,14 @@ export function OnboardingFlow() {
     [onboardingData.politicalLevel, onboardingData.campaignStrategy],
   );
 
-  if (showWelcome) {
-    return <WelcomeScreen onStart={handleStart} />;
-  }
-
   if (!currentStep) {
     return <div className="text-white">Error: Step not found</div>;
   }
 
   return (
     <AnimatedBackground>
-      <div className="max-w-4xl mx-auto py-10 sm:py-14">
+        <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
+
         {!isComplete && (
           <div className="mb-6 sm:mb-8">
             <motion.button
@@ -192,10 +264,12 @@ export function OnboardingFlow() {
           </div>
         )}
 
-        <div className="flex items-center justify-center min-h-[500px]">
+        <div className="flex items-center justify-center min-h-[420px] sm:min-h-[500px]">
           <AnimatePresence mode="wait">
             {isComplete ? (
-              <CompletionScreen key="complete" onFinish={handleFinish} />
+              <Suspense fallback={<StepLoading />}>
+                <CompletionScreen key="complete" onFinish={handleFinish} />
+              </Suspense>
             ) : (
               <motion.div
                 key={getStepKey(currentStep)}
@@ -205,66 +279,78 @@ export function OnboardingFlow() {
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
               >
-                {currentStep.type === "info" && (
-                  <StepInfo
-                    title={currentStep.title}
-                    onNext={() => handleStepData()}
-                  />
-                )}
-                {currentStep.id === "politicalParty" && (
-                  <StepSearchSelect
-                    title={currentStep.title}
-                    subtitle={currentStep.subtitle}
-                    options={PARTY_OPTIONS}
-                    guideText={currentStep.guideText}
-                    onNext={(selectedId) => handleStepData(selectedId)}
-                  />
-                )}
-                {currentStep.type === "single-select" &&
-                  currentStep.id !== "politicalParty" && (
-                    <StepSingleChoice
+                <Suspense fallback={<StepLoading />}>
+                  {currentStep.type === "info" && (
+                    <StepInfo
                       title={currentStep.title}
-                      subtitle={currentStep.subtitle}
-                      options={(() => {
-                        if (currentStep.id === "politicalRole") {
-                          return getRoleOptionsByLevel(
-                            onboardingData.politicalLevel,
-                          );
-                        }
-                        if (currentStep.id === "strategyCombination") {
-                          return onboardingData.campaignStrategy === "MIXTO"
-                            ? currentStep.options || []
-                            : [];
-                        }
-                        return currentStep.options || [];
-                      })()}
-                      guideText={currentStep.guideText}
-                      onNext={(selectedId) => handleStepData(selectedId)}
+                      onNext={() => handleStepData()}
                     />
                   )}
-                {currentStep.type === "multi-select" && currentStep.options && (
-                  <StepMultipleChoice
-                    title={currentStep.title}
-                    subtitle={currentStep.subtitle}
-                    options={currentStep.options}
-                    guideText={currentStep.guideText}
-                    maxSelections={DEFAULT_MAX_SELECTIONS}
-                    minSelections={DEFAULT_MIN_SELECTIONS}
-                    onNext={(selectedIds) => handleStepData(selectedIds)}
-                  />
-                )}
-                {currentStep.type === "form" && currentStep.fields && (
-                  <StepForm
-                    title={currentStep.title}
-                    subtitle={currentStep.subtitle}
-                    guideText={currentStep.guideText}
-                    fields={currentStep.fields}
-                    onNext={(formData) => handleStepData(formData)}
-                  />
-                )}
+                  {currentStep.id === "politicalParty" && (
+                    <StepSearchSelect
+                      title={currentStep.title}
+                      subtitle={currentStep.subtitle}
+                      options={partyOptions}
+                      guideText={currentStep.guideText}
+                      onNext={(selectedId: StepSearchSelectValue) =>
+                        handleStepData(selectedId)
+                      }
+                    />
+                  )}
+                  {currentStep.type === "single-select" &&
+                    currentStep.id !== "politicalParty" && (
+                      <StepSingleChoice
+                        title={currentStep.title}
+                        subtitle={currentStep.subtitle}
+                        options={(() => {
+                          if (currentStep.id === "politicalRole") {
+                            return getRoleOptionsByLevel(
+                              onboardingData.politicalLevel,
+                            );
+                          }
+                          if (currentStep.id === "strategyCombination") {
+                            return onboardingData.campaignStrategy === "MIXTO"
+                              ? currentStep.options || []
+                              : [];
+                          }
+                          return currentStep.options || [];
+                        })()}
+                        guideText={currentStep.guideText}
+                        onNext={(selectedId: StepSearchSelectValue) =>
+                          handleStepData(selectedId)
+                        }
+                      />
+                    )}
+                  {currentStep.type === "multi-select" &&
+                    currentStep.options && (
+                      <StepMultipleChoice
+                        title={currentStep.title}
+                        subtitle={currentStep.subtitle}
+                        options={currentStep.options}
+                        guideText={currentStep.guideText}
+                        maxSelections={DEFAULT_MAX_SELECTIONS}
+                        minSelections={DEFAULT_MIN_SELECTIONS}
+                        onNext={(selectedIds: StepMultipleChoiceValue) =>
+                          handleStepData(selectedIds)
+                        }
+                      />
+                    )}
+                  {currentStep.type === "form" && currentStep.fields && (
+                    <StepForm
+                      title={currentStep.title}
+                      subtitle={currentStep.subtitle}
+                      guideText={currentStep.guideText}
+                      fields={currentStep.fields}
+                      onNext={(formData: StepFormValue) =>
+                        handleStepData(formData)
+                      }
+                    />
+                  )}
+                </Suspense>
               </motion.div>
             )}
           </AnimatePresence>
+
         </div>
       </div>
     </AnimatedBackground>

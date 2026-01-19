@@ -1,12 +1,12 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { CheckCircle2 } from "lucide-react";
 import { useState, useCallback } from "react";
 import type { FlowOption } from "@/src/onboarding/types";
 import { getIcon } from "./icon-map";
 
-const SELECTION_DELAY_MS = 400;
+const SELECTION_DELAY_MS = 200;
 
 interface StepSingleChoiceProps {
   title: string;
@@ -24,6 +24,7 @@ export function StepSingleChoice({
   onNext,
 }: StepSingleChoiceProps) {
   const [selected, setSelected] = useState<string | null>(null);
+  const shouldReduceMotion = useReducedMotion();
 
   const handleSelect = useCallback(
     (id: string) => {
@@ -48,16 +49,16 @@ export function StepSingleChoice({
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 50 }}
+      initial={shouldReduceMotion ? false : { opacity: 0, x: 50 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -50 }}
-      transition={{ duration: 0.4 }}
+      exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: -50 }}
+      transition={shouldReduceMotion ? undefined : { duration: 0.4 }}
       className="w-full max-w-4xl"
     >
       <motion.h2
-        initial={{ opacity: 0, y: 20 }}
+        initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+        transition={shouldReduceMotion ? undefined : { delay: 0.1 }}
         className="text-2xl sm:text-3xl md:text-4xl mb-2 sm:mb-3 text-white leading-tight"
       >
         {title}
@@ -65,9 +66,9 @@ export function StepSingleChoice({
 
       {subtitle && (
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={shouldReduceMotion ? undefined : { delay: 0.2 }}
           className="text-base sm:text-lg text-zinc-400 mb-3 sm:mb-4"
         >
           {subtitle}
@@ -76,9 +77,9 @@ export function StepSingleChoice({
 
       {guideText && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
+          transition={shouldReduceMotion ? undefined : { delay: 0.25 }}
           className="mb-6 sm:mb-8 p-3 sm:p-4 bg-gradient-to-r from-amber-500/10 to-blue-500/10 border border-amber-500/20 rounded-xl"
         >
           <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
@@ -87,7 +88,8 @@ export function StepSingleChoice({
         </motion.div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
+
         {options.map((option, index) => {
           const Icon = getIcon(option.icon);
           const isSelected = selected === option.value;
@@ -96,11 +98,13 @@ export function StepSingleChoice({
             <motion.button
               key={option.value}
               type="button"
-              initial={{ opacity: 0, y: 20 }}
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 + index * 0.1 }}
-              whileHover={{ scale: 1.02, y: -3 }}
-              whileTap={{ scale: 0.98 }}
+              transition={
+                shouldReduceMotion ? undefined : { delay: 0.3 + index * 0.1 }
+              }
+              whileHover={shouldReduceMotion ? undefined : { scale: 1.02, y: -3 }}
+              whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
               onClick={() => handleOptionClick(option.value)}
               aria-pressed={isSelected}
               className={`relative p-4 sm:p-6 rounded-2xl border-2 text-left transition-all overflow-hidden group min-h-[140px] sm:min-h-[160px] touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black ${
@@ -109,10 +113,12 @@ export function StepSingleChoice({
                   : "bg-black/40 border-zinc-800/80 hover:border-amber-500/50 hover:bg-black/60 backdrop-blur-sm"
               }`}
             >
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                initial={false}
-              />
+              {!shouldReduceMotion && (
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                  initial={false}
+                />
+              )}
 
               <div className="relative z-10">
                 <div className="flex items-start justify-between mb-3 sm:mb-4">
@@ -134,10 +140,14 @@ export function StepSingleChoice({
 
                   <motion.div
                     initial={false}
-                    animate={{
-                      scale: isSelected ? 1 : 0,
-                      rotate: isSelected ? 0 : 180,
-                    }}
+                    animate={
+                      shouldReduceMotion
+                        ? { scale: isSelected ? 1 : 0 }
+                        : {
+                            scale: isSelected ? 1 : 0,
+                            rotate: isSelected ? 0 : 180,
+                          }
+                    }
                     className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black" />
@@ -161,9 +171,9 @@ export function StepSingleChoice({
               {isSelected && (
                 <motion.div
                   className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-amber-600"
-                  initial={{ scaleX: 0 }}
+                  initial={shouldReduceMotion ? false : { scaleX: 0 }}
                   animate={{ scaleX: 1 }}
-                  transition={{ duration: 0.3 }}
+                  transition={shouldReduceMotion ? undefined : { duration: 0.3 }}
                 />
               )}
             </motion.button>

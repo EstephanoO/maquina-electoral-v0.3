@@ -1,21 +1,23 @@
 # PR AGENTS
 
 ## Alcance
-- Flujo de ramas y reglas para integraciones.
-- Reglas de revision y despliegue.
+- Flujo de ramas, integraciones y despliegue.
+- Convenciones de commits y verificacion de calidad.
 
 ## Reglas del flujo
-- `main` es la rama de produccion.
-- `develop` es la rama de integracion.
-- Trabajar en ramas de feature desde `develop`.
-- Los PRs deben ir a `develop`.
-- Solo se mergea a `main` desde `develop` con revision.
+- `main` es produccion (deploy al subir codigo).
+- `develop` es integracion y capa de seguridad.
+- Trabajar en ramas feature desde `develop`.
+- Merge a `main` solo cuando el build y lint pasan.
 
 ## Convenciones
-- Nombrar ramas: `feature/<tema>`, `fix/<tema>`, `chore/<tema>`.
-- Commits en presente e indicando proposito (no mecanico).
-- Requerir 1 aprobacion antes de merge.
-- No merges directos a `main`.
+- Ramas: `feature/<tema>`, `fix/<tema>`, `chore/<tema>`.
+- Commits en presente, describiendo proposito.
+- Evitar merges directos a `main` sin validaciones.
+
+## Verificacion antes de merge a main
+- `npm run build` debe pasar.
+- `npm run lint` sin errores (warnings aceptables con justificacion).
 
 ## Vercel
 - Produccion apunta a `main`.
@@ -23,4 +25,5 @@
 
 ## Entregables
 - Cambios en reglas del flujo.
-- Ajustes en integraciones con Vercel.
+- Ajustes en integraciones de despliegue.
+- Checklists de build/lint cuando aplique.

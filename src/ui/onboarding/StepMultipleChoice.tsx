@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { Check, ChevronRight } from "lucide-react";
 import { useState, useCallback } from "react";
 import type { FlowOption } from "@/src/onboarding/types";
@@ -30,6 +30,7 @@ export function StepMultipleChoice({
 }: StepMultipleChoiceProps) {
   const [selected, setSelected] = useState<string[]>([]);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const shouldReduceMotion = useReducedMotion();
 
   const handleToggle = useCallback(
     (id: string) => {
@@ -69,16 +70,16 @@ export function StepMultipleChoice({
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 50 }}
+      initial={shouldReduceMotion ? false : { opacity: 0, x: 50 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -50 }}
-      transition={{ duration: 0.4 }}
+      exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: -50 }}
+      transition={shouldReduceMotion ? undefined : { duration: 0.4 }}
       className="w-full max-w-4xl"
     >
       <motion.h2
-        initial={{ opacity: 0, y: 20 }}
+        initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+        transition={shouldReduceMotion ? undefined : { delay: 0.1 }}
         className="text-2xl sm:text-3xl md:text-4xl mb-2 sm:mb-3 text-white leading-tight"
       >
         {title}
@@ -86,9 +87,9 @@ export function StepMultipleChoice({
 
       {subtitle && (
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={shouldReduceMotion ? undefined : { delay: 0.2 }}
           className="text-base sm:text-lg text-zinc-400 mb-2"
         >
           {subtitle}
@@ -96,9 +97,9 @@ export function StepMultipleChoice({
       )}
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25 }}
+        transition={shouldReduceMotion ? undefined : { delay: 0.25 }}
         className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3 sm:mb-4"
       >
         <div className="flex items-center gap-2">
@@ -120,9 +121,9 @@ export function StepMultipleChoice({
 
       {guideText && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={shouldReduceMotion ? undefined : { delay: 0.3 }}
           className="mb-6 sm:mb-8 p-3 sm:p-4 bg-gradient-to-r from-amber-500/10 to-blue-500/10 border border-amber-500/20 rounded-xl"
         >
           <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
@@ -131,7 +132,8 @@ export function StepMultipleChoice({
         </motion.div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-5 mb-6 sm:mb-8">
+
         {options.map((option, index) => {
           const Icon = getIcon(option.icon);
           const isSelected = selected.includes(option.value);
@@ -142,14 +144,24 @@ export function StepMultipleChoice({
             <motion.button
               key={option.value}
               type="button"
-              initial={{ opacity: 0, y: 20 }}
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 + index * 0.1 }}
-              whileHover={{
-                scale: isDisabled ? 1 : 1.02,
-                y: isDisabled ? 0 : -2,
-              }}
-              whileTap={{ scale: isDisabled ? 1 : 0.98 }}
+              transition={
+                shouldReduceMotion ? undefined : { delay: 0.4 + index * 0.1 }
+              }
+              whileHover={
+                shouldReduceMotion
+                  ? undefined
+                  : {
+                      scale: isDisabled ? 1 : 1.02,
+                      y: isDisabled ? 0 : -2,
+                    }
+              }
+              whileTap={
+                shouldReduceMotion
+                  ? undefined
+                  : { scale: isDisabled ? 1 : 0.98 }
+              }
               onClick={() => handleOptionClick(option.value)}
               onMouseEnter={() => handleMouseEnter(option.value)}
               onMouseLeave={handleMouseLeave}
@@ -163,7 +175,7 @@ export function StepMultipleChoice({
                     : "bg-black/40 border-zinc-800/80 hover:border-blue-500/50 hover:bg-black/60 backdrop-blur-sm"
               }`}
             >
-              {!isDisabled && (
+              {!isDisabled && !shouldReduceMotion && (
                 <motion.div
                   className={`absolute inset-0 ${
                     isSelected
@@ -200,12 +212,16 @@ export function StepMultipleChoice({
 
                   <motion.div
                     initial={false}
-                    animate={{
-                      scale: isSelected ? 1 : 0.8,
-                      backgroundColor: isSelected
-                        ? "rgba(245, 158, 11, 1)"
-                        : "rgba(39, 39, 42, 0.6)",
-                    }}
+                    animate={
+                      shouldReduceMotion
+                        ? { scale: isSelected ? 1 : 0.8 }
+                        : {
+                            scale: isSelected ? 1 : 0.8,
+                            backgroundColor: isSelected
+                              ? "rgba(245, 158, 11, 1)"
+                              : "rgba(39, 39, 42, 0.6)",
+                          }
+                    }
                     className="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center border-2 border-zinc-700/60"
                   >
                     {isSelected && (
@@ -237,12 +253,12 @@ export function StepMultipleChoice({
                 )}
 
                 <motion.div
-                  initial={{ height: 0, opacity: 0 }}
+                  initial={shouldReduceMotion ? false : { height: 0, opacity: 0 }}
                   animate={{
                     height: isHovered || isSelected ? "auto" : 0,
                     opacity: isHovered || isSelected ? 1 : 0,
                   }}
-                  transition={{ duration: 0.3 }}
+                  transition={shouldReduceMotion ? undefined : { duration: 0.3 }}
                   className="overflow-hidden"
                 >
                   <div className="pt-2 sm:pt-3 border-t border-zinc-800/70">
@@ -276,9 +292,9 @@ export function StepMultipleChoice({
               {isSelected && (
                 <motion.div
                   className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-amber-600"
-                  initial={{ scaleX: 0 }}
+                  initial={shouldReduceMotion ? false : { scaleX: 0 }}
                   animate={{ scaleX: 1 }}
-                  transition={{ duration: 0.3 }}
+                  transition={shouldReduceMotion ? undefined : { duration: 0.3 }}
                 />
               )}
             </motion.button>
@@ -288,11 +304,19 @@ export function StepMultipleChoice({
 
       <motion.button
         type="button"
-        initial={{ opacity: 0, y: 20 }}
+        initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        whileHover={{ scale: selected.length > 0 ? 1.02 : 1 }}
-        whileTap={{ scale: selected.length > 0 ? 0.98 : 1 }}
+        transition={shouldReduceMotion ? undefined : { delay: 0.5 }}
+        whileHover={
+          shouldReduceMotion
+            ? undefined
+            : { scale: selected.length > 0 ? 1.02 : 1 }
+        }
+        whileTap={
+          shouldReduceMotion
+            ? undefined
+            : { scale: selected.length > 0 ? 0.98 : 1 }
+        }
         onClick={handleNext}
         disabled={selected.length < minSelections}
         className={`w-full px-6 sm:px-8 py-3.5 sm:py-4 rounded-full flex items-center justify-center gap-2 transition-all border-2 text-base sm:text-lg touch-manipulation ${

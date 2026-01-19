@@ -1,41 +1,34 @@
 # UI AGENTS
 
 ## Alcance
-- Sistema visual, componentes y estilos.
-- Definicion de tokens y temas.
-- Layouts y consistencia de UX.
+- Sistema visual, componentes y dashboards.
+- Estilo war room y consistencia visual.
 
 ## Responsabilidades
-- Diseñar componentes reutilizables y escalables.
-- Mantener lenguaje visual war room (negro base, zinc).
-- Coordinar interaccion con onboarding y dashboard.
+- Componentes reutilizables y layout consistente.
+- Dashboards cliente/admin en `src/app/dashboard/`.
+- Estados vacios, errores y loading claros.
 
 ## Reglas de implementacion
-- Definir colores y tipografia en `src/app/globals.css`.
-- Mantener contraste y legibilidad en negro base.
-- Usar azul y dorado como acento, sin sobrecargar.
-- Evitar patrones genericos; interfaces deliberadas.
-- Verificar UI en desktop y mobile con `chrome-devtools`.
+- Tokens en `src/app/globals.css`.
+- Negro dominante con acentos azul/dorado, sin sobrecargar.
+- Evitar patrones genericos; UI deliberada y legible.
+- Verificar desktop y mobile con `chrome-devtools`.
 
 ## Tipos y validacion
 - Consumir tipos compartidos; no duplicar modelos.
 
 ## Entregables
-- Tokens CSS y componentes base.
-- Documentar decisiones de estilo no obvias.
-- UI del onboarding y dashboard coherentes.
-- Ajustes de accesibilidad (focus/ARIA) y estados vacíos.
+- Ajustes de UI y accesibilidad.
+- Componentes del onboarding y dashboards coherentes.
+- Justificacion de decisiones visuales no obvias.
 
 ## Estructura del modulo
 - `src/ui/onboarding/` componentes del flujo.
-- `src/ui/shadcn/` primitives UI.
-- `src/ui/auth/` guardias y wrappers para rutas.
+- `src/ui/auth/` wrappers/guardias.
 
 ## Skills
-- `react-19`
-- `nextjs-16`
-- `tailwind-4` (si aplica)
+- `react-19`, `nextjs-16`, `tailwind-4` (si aplica).
 
 ## Resumen esperado
-- Cambios visuales y justificacion.
-- Impacto en consistencia del sistema.
+- Cambios visuales, impacto en consistencia y UX.

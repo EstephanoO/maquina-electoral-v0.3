@@ -1,11 +1,13 @@
 "use client";
 
-import { motion } from "motion/react";
+import Image from "next/image";
+import { motion, useReducedMotion } from "motion/react";
 import { Search, CheckCircle2 } from "lucide-react";
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import type { FlowOption } from "@/src/onboarding/types";
 
 const SELECTION_DELAY_MS = 250;
+const INITIAL_RESULT_LIMIT = 40;
 
 interface StepSearchSelectProps {
   title: string;
@@ -24,6 +26,8 @@ export function StepSearchSelect({
 }: StepSearchSelectProps) {
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
+  const [showAllResults, setShowAllResults] = useState(false);
+  const shouldReduceMotion = useReducedMotion();
 
   const filteredOptions = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -32,6 +36,22 @@ export function StepSearchSelect({
       option.label.toLowerCase().includes(normalized),
     );
   }, [options, query]);
+
+  const visibleOptions = useMemo(() => {
+    if (showAllResults) return filteredOptions;
+    return filteredOptions.slice(0, INITIAL_RESULT_LIMIT);
+  }, [filteredOptions, showAllResults]);
+
+  const hasMoreResults = filteredOptions.length > visibleOptions.length;
+
+  useEffect(() => {
+    if (!options.length) return;
+    if (!shouldReduceMotion) return;
+    if (visibleOptions.length === 0) {
+      setShowAllResults(false);
+    }
+  }, [options.length, shouldReduceMotion, visibleOptions.length]);
+
 
   const handleSelect = useCallback(
     (id: string) => {
@@ -43,16 +63,16 @@ export function StepSearchSelect({
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 50 }}
+      initial={shouldReduceMotion ? false : { opacity: 0, x: 50 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -50 }}
-      transition={{ duration: 0.4 }}
+      exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: -50 }}
+      transition={shouldReduceMotion ? undefined : { duration: 0.4 }}
       className="w-full max-w-4xl"
     >
       <motion.h2
-        initial={{ opacity: 0, y: 20 }}
+        initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+        transition={shouldReduceMotion ? undefined : { delay: 0.1 }}
         className="text-2xl sm:text-3xl md:text-4xl mb-2 sm:mb-3 text-white leading-tight"
       >
         {title}
@@ -60,9 +80,9 @@ export function StepSearchSelect({
 
       {subtitle && (
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={shouldReduceMotion ? undefined : { delay: 0.2 }}
           className="text-base sm:text-lg text-zinc-400 mb-3 sm:mb-4"
         >
           {subtitle}
@@ -71,9 +91,9 @@ export function StepSearchSelect({
 
       {guideText && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
+          transition={shouldReduceMotion ? undefined : { delay: 0.25 }}
           className="mb-6 sm:mb-8 p-3 sm:p-4 bg-gradient-to-r from-amber-500/10 to-blue-500/10 border border-amber-500/20 rounded-xl"
         >
           <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
@@ -95,7 +115,10 @@ export function StepSearchSelect({
             id="party-search"
             type="text"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setShowAllResults(false);
+            }}
             placeholder="Escribe el nombre del partido"
             className="w-full rounded-2xl border border-zinc-800/80 bg-black/50 py-3 pl-11 pr-4 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
             aria-describedby="party-search-helper"
@@ -115,7 +138,13 @@ export function StepSearchSelect({
             </p>
           </div>
         )}
-        {filteredOptions.map((option) => {
+        {hasMoreResults && !showAllResults && (
+          <div className="rounded-xl border border-zinc-800/80 bg-black/30 px-4 py-3 text-xs text-zinc-400">
+            Mostrando las primeras {visibleOptions.length}. Usa el buscador o
+            despliega la lista completa.
+          </div>
+        )}
+        {visibleOptions.map((option) => {
           const isSelected = selected === option.value;
           return (
             <button
@@ -130,12 +159,21 @@ export function StepSearchSelect({
               aria-pressed={isSelected}
             >
               <span className="flex items-center gap-3">
-                {option.logoUrl && (
-                  <img
+                {option.logoUrl ? (
+                  <Image
                     src={option.logoUrl}
                     alt={option.label}
+                    width={32}
+                    height={32}
+                    sizes="32px"
                     className="h-8 w-8 rounded-full border border-zinc-800/70 bg-black/40 object-contain"
                     loading="lazy"
+                    decoding="async"
+                  />
+                ) : (
+                  <span
+                    aria-hidden="true"
+                    className="h-8 w-8 rounded-full border border-dashed border-zinc-800/70 bg-black/40"
                   />
                 )}
                 <span>{option.label}</span>
@@ -146,6 +184,17 @@ export function StepSearchSelect({
             </button>
           );
         })}
+        {hasMoreResults && (
+          <button
+            type="button"
+            onClick={() => setShowAllResults((prev) => !prev)}
+            className="w-full rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-200 transition hover:border-amber-500/70"
+          >
+            {showAllResults
+              ? "Mostrar menos"
+              : `Mostrar todos (${filteredOptions.length})`}
+          </button>
+        )}
       </div>
     </motion.div>
   );

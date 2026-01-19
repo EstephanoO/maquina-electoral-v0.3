@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { ChevronRight } from "lucide-react";
 import { useState, useCallback } from "react";
 import type { FormField } from "@/src/onboarding/types";
@@ -30,6 +30,7 @@ export function StepForm({
   fields,
   onNext,
 }: StepFormProps) {
+  const shouldReduceMotion = useReducedMotion();
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [showSocialLinks, setShowSocialLinks] = useState(false);
@@ -81,16 +82,16 @@ export function StepForm({
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 50 }}
+      initial={shouldReduceMotion ? false : { opacity: 0, x: 50 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -50 }}
-      transition={{ duration: 0.4 }}
+      exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, x: -50 }}
+      transition={shouldReduceMotion ? undefined : { duration: 0.4 }}
       className="w-full max-w-3xl"
     >
       <motion.h2
-        initial={{ opacity: 0, y: 20 }}
+        initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
+        transition={shouldReduceMotion ? undefined : { delay: 0.1 }}
         className="text-2xl sm:text-3xl md:text-4xl mb-2 sm:mb-3 text-white leading-tight"
       >
         {title}
@@ -98,9 +99,9 @@ export function StepForm({
 
       {subtitle && (
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={shouldReduceMotion ? undefined : { delay: 0.2 }}
           className="text-base sm:text-lg text-zinc-400 mb-3 sm:mb-4"
         >
           {subtitle}
@@ -109,9 +110,9 @@ export function StepForm({
 
       {guideText && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
+          transition={shouldReduceMotion ? undefined : { delay: 0.25 }}
           className="mb-6 sm:mb-8 p-3 sm:p-4 bg-gradient-to-r from-amber-500/10 to-blue-500/10 border border-amber-500/20 rounded-xl"
         >
           <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
@@ -121,7 +122,7 @@ export function StepForm({
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5">
           {fields
             .filter((field) =>
               ["facebookUrl", "tiktokUrl", "instagramUrl"].includes(field.id)
@@ -131,11 +132,16 @@ export function StepForm({
             .map((field, index) => (
               <motion.div
                 key={field.id}
-                initial={{ opacity: 0, y: 20 }}
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  delay: 0.3 + index * FORM_FIELD_ANIMATION_DELAY_INCREMENT,
-                }}
+                transition={
+                  shouldReduceMotion
+                    ? undefined
+                    : {
+                        delay:
+                          0.3 + index * FORM_FIELD_ANIMATION_DELAY_INCREMENT,
+                      }
+                }
                 className={
                   field.id === "firstName" || field.id === "lastName"
                     ? "md:col-span-1"
@@ -208,11 +214,15 @@ export function StepForm({
 
         <motion.button
           type="submit"
-          initial={{ opacity: 0, y: 20 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          whileHover={{ scale: isFormValid() ? 1.02 : 1 }}
-          whileTap={{ scale: isFormValid() ? 0.98 : 1 }}
+          transition={shouldReduceMotion ? undefined : { delay: 0.5 }}
+          whileHover={
+            shouldReduceMotion ? undefined : { scale: isFormValid() ? 1.02 : 1 }
+          }
+          whileTap={
+            shouldReduceMotion ? undefined : { scale: isFormValid() ? 0.98 : 1 }
+          }
           disabled={!isFormValid()}
           className={`mx-auto w-full sm:w-auto min-w-[220px] px-6 sm:px-10 py-3.5 sm:py-4 rounded-full flex items-center justify-center gap-2 transition-all border-2 text-base sm:text-lg touch-manipulation ${
             isFormValid()
