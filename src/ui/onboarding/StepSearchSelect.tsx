@@ -6,7 +6,7 @@ import { Search, CheckCircle2 } from "lucide-react";
 import { useMemo, useState, useCallback, useEffect } from "react";
 import type { FlowOption } from "@/src/onboarding/types";
 
-const SELECTION_DELAY_MS = 250;
+const SELECTION_DELAY_MS = 0;
 const INITIAL_RESULT_LIMIT = 40;
 
 interface StepSearchSelectProps {
@@ -56,6 +56,10 @@ export function StepSearchSelect({
   const handleSelect = useCallback(
     (id: string) => {
       setSelected(id);
+      if (SELECTION_DELAY_MS === 0) {
+        onNext(id);
+        return;
+      }
       setTimeout(() => onNext(id), SELECTION_DELAY_MS);
     },
     [onNext],
@@ -75,7 +79,7 @@ export function StepSearchSelect({
         <m.h2
           initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={shouldReduceMotion ? undefined : { delay: 0.1 }}
+          transition={shouldReduceMotion ? undefined : { delay: 0.03 }}
           className="text-2xl sm:text-3xl md:text-4xl mb-2 sm:mb-3 text-white leading-tight"
         >
           {title}
@@ -85,7 +89,7 @@ export function StepSearchSelect({
           <m.p
             initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={shouldReduceMotion ? undefined : { delay: 0.2 }}
+            transition={shouldReduceMotion ? undefined : { delay: 0.08 }}
             className="text-base sm:text-lg text-zinc-400 mb-3 sm:mb-4"
           >
             {subtitle}
@@ -96,7 +100,7 @@ export function StepSearchSelect({
           <m.div
             initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={shouldReduceMotion ? undefined : { delay: 0.25 }}
+            transition={shouldReduceMotion ? undefined : { delay: 0.12 }}
             className="mb-6 sm:mb-8 p-3 sm:p-4 bg-gradient-to-r from-amber-500/10 to-blue-500/10 border border-amber-500/20 rounded-xl"
           >
             <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">

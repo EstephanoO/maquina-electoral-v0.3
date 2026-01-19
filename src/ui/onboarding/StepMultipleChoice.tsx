@@ -80,7 +80,7 @@ export function StepMultipleChoice({
         <m.h2
           initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={shouldReduceMotion ? undefined : { delay: 0.1 }}
+          transition={shouldReduceMotion ? undefined : { delay: 0.03 }}
           className="text-2xl sm:text-3xl md:text-4xl mb-2 sm:mb-3 text-white leading-tight"
         >
           {title}
@@ -90,7 +90,7 @@ export function StepMultipleChoice({
           <m.p
             initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={shouldReduceMotion ? undefined : { delay: 0.2 }}
+            transition={shouldReduceMotion ? undefined : { delay: 0.08 }}
             className="text-base sm:text-lg text-zinc-400 mb-2"
           >
             {subtitle}
@@ -100,7 +100,7 @@ export function StepMultipleChoice({
         <m.div
           initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={shouldReduceMotion ? undefined : { delay: 0.25 }}
+          transition={shouldReduceMotion ? undefined : { delay: 0.12 }}
           className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3 sm:mb-4"
         >
           <div className="flex items-center gap-2">
@@ -147,7 +147,7 @@ export function StepMultipleChoice({
                 initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={
-                  shouldReduceMotion ? undefined : { delay: 0.4 + index * 0.1 }
+                  shouldReduceMotion ? undefined : { delay: 0.1 + index * 0.02 }
                 }
                 whileHover={
                   shouldReduceMotion
@@ -308,7 +308,7 @@ export function StepMultipleChoice({
           type="button"
           initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={shouldReduceMotion ? undefined : { delay: 0.5 }}
+          transition={shouldReduceMotion ? undefined : { delay: 0.3 }}
           whileHover={
             shouldReduceMotion
               ? undefined

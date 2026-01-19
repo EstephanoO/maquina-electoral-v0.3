@@ -6,7 +6,7 @@ import { useState, useCallback } from "react";
 import type { FlowOption } from "@/src/onboarding/types";
 import { getIcon } from "./icon-map";
 
-const SELECTION_DELAY_MS = 200;
+const SELECTION_DELAY_MS = 0;
 
 interface StepSingleChoiceProps {
   title: string;
@@ -29,6 +29,10 @@ export function StepSingleChoice({
   const handleSelect = useCallback(
     (id: string) => {
       setSelected(id);
+      if (SELECTION_DELAY_MS === 0) {
+        onNext(id);
+        return;
+      }
       setTimeout(() => {
         onNext(id);
       }, SELECTION_DELAY_MS);
@@ -59,7 +63,7 @@ export function StepSingleChoice({
         <m.h2
           initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={shouldReduceMotion ? undefined : { delay: 0.1 }}
+          transition={shouldReduceMotion ? undefined : { delay: 0.03 }}
           className="text-2xl sm:text-3xl md:text-4xl mb-2 sm:mb-3 text-white leading-tight"
         >
           {title}
@@ -101,7 +105,7 @@ export function StepSingleChoice({
                 initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={
-                  shouldReduceMotion ? undefined : { delay: 0.3 + index * 0.1 }
+                  shouldReduceMotion ? undefined : { delay: 0.15 + index * 0.03 }
                 }
                 whileHover={
                   shouldReduceMotion ? undefined : { scale: 1.02, y: -3 }

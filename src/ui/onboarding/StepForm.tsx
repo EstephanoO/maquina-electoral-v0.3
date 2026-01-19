@@ -92,7 +92,7 @@ export function StepForm({
         <m.h2
           initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={shouldReduceMotion ? undefined : { delay: 0.1 }}
+          transition={shouldReduceMotion ? undefined : { delay: 0.03 }}
           className="text-2xl sm:text-3xl md:text-4xl mb-2 sm:mb-3 text-white leading-tight"
         >
           {title}
@@ -102,7 +102,7 @@ export function StepForm({
           <m.p
             initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={shouldReduceMotion ? undefined : { delay: 0.2 }}
+            transition={shouldReduceMotion ? undefined : { delay: 0.12 }}
             className="text-base sm:text-lg text-zinc-400 mb-3 sm:mb-4"
           >
             {subtitle}
@@ -113,7 +113,7 @@ export function StepForm({
           <m.div
             initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={shouldReduceMotion ? undefined : { delay: 0.25 }}
+            transition={shouldReduceMotion ? undefined : { delay: 0.18 }}
             className="mb-6 sm:mb-8 p-3 sm:p-4 bg-gradient-to-r from-amber-500/10 to-blue-500/10 border border-amber-500/20 rounded-xl"
           >
             <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
@@ -135,14 +135,15 @@ export function StepForm({
                   key={field.id}
                   initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={
-                    shouldReduceMotion
-                      ? undefined
-                      : {
-                          delay:
-                            0.3 + index * FORM_FIELD_ANIMATION_DELAY_INCREMENT,
-                        }
-                  }
+                    transition={
+                      shouldReduceMotion
+                        ? undefined
+                        : {
+                            delay:
+                              0.08 + index * FORM_FIELD_ANIMATION_DELAY_INCREMENT,
+                          }
+                    }
+
                   className={
                     field.id === "firstName" || field.id === "lastName"
                       ? "md:col-span-1"
@@ -217,7 +218,7 @@ export function StepForm({
             type="submit"
             initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={shouldReduceMotion ? undefined : { delay: 0.5 }}
+            transition={shouldReduceMotion ? undefined : { delay: 0.3 }}
             whileHover={
               shouldReduceMotion ? undefined : { scale: isFormValid() ? 1.02 : 1 }
             }
